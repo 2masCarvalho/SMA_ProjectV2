@@ -18,19 +18,19 @@ class Politica(ABC):
 
 class PoliticaAleatoria(Politica):
     """Escolhe uma ação aleatória das opções disponíveis."""
+    def __init__(self, accoes_possiveis):
+        self.accoes = accoes_possiveis
+
     def selecionar_accao(self, observacao: Observacao) -> Accao:
-        caminhos = observacao.get("caminhos", [])
-        if caminhos:
-            escolha = random.choice(caminhos)
-            return Accao("mover", {"direcao": escolha})
-        return Accao("parar")
+        escolha = random.choice(self.accoes)
+        return Accao("mover", {"direcao": escolha})
 
     def atualizar(self, recompensa: float):
-        pass
+        pass # Não aprende nada
 
 class PoliticaQLearning(Politica):
     """Implementa Q-Learning."""
-    def __init__(self, accoes_possiveis: List[str], alpha=0.1, gamma=0.9, epsilon=0.1):
+    def __init__(self, accoes_possiveis: List[str], alpha=0.1, gamma=0.9, epsilon=0.3):
         self.q_table = {} # {(x, y): {accao: valor}}
         self.accoes = accoes_possiveis
         self.alpha = alpha
@@ -42,15 +42,22 @@ class PoliticaQLearning(Politica):
         self.ultima_accao = None
         self.ultima_recompensa = 0.0
 
+    # No ficheiro Politica.py, dentro de PoliticaQLearning
+
     def get_estado_key(self, observacao: Observacao):
-        # Tenta obter "posicao"
-        pos = observacao.get("posicao")
+        # 1. Tentar obter os dados de forma segura (funciona para dict e objetos)
+        dados = observacao if isinstance(observacao, dict) else getattr(observacao, "dados", {})
         
-        # Se pos for None, retornamos None (causa o seu erro)
+        # 2. Se observacao for um objeto mas não tiver .dados, tenta usar __dict__
+        if not isinstance(dados, dict):
+             # Último recurso: tenta aceder ao atributo posicao diretamente
+             pos = getattr(observacao, "posicao", None)
+        else:
+             pos = dados.get("posicao")
+        
+        # O resto mantém-se igual...
         if pos is None:
             return None
-            
-        # Garante que é uma tupla para funcionar como chave de dicionário
         return tuple(pos)
 
     def selecionar_accao(self, observacao: Observacao) -> Accao:
@@ -126,4 +133,45 @@ class PoliticaQLearning(Politica):
         except FileNotFoundError:
             print(f"Ficheiro {caminho} não encontrado. Começando com Q-Table vazia.")
 
+# vai deretamente ao farol
+class PoliticaGulosa(Politica):
+    """Escolhe a ação que mais aproxima o agente do alvo (baseado em sensores)."""
+    def __init__(self, accoes_possiveis):
+        self.accoes = accoes_possiveis
 
+    def selecionar_accao(self, observacao: Observacao) -> Accao:
+        # A observação tem de vir do SensorDirecao
+        dados = observacao.dados if hasattr(observacao, 'dados') else observacao
+        vetor = dados.get("direcao", (0,0))
+        dx, dy = vetor
+
+        if dx == 0 and dy == 0:
+            return Accao("parar")
+
+        # Lógica das Diagonais (a mesma que tinhas no agente)
+        limiar = 0.3
+        dir_v, dir_h = "", ""
+
+        if dy < -limiar: dir_v = "norte"
+        elif dy > limiar: dir_v = "sul"
+        
+        if dx > limiar: dir_h = "este"
+        elif dx < -limiar: dir_h = "oeste"
+
+        if dir_v and dir_h:
+            # Combinar para diagonal
+            mapa = {
+                ("norte", "este"): "nordeste", ("norte", "oeste"): "noroeste",
+                ("sul", "este"): "sudeste",   ("sul", "oeste"): "sudoeste"
+            }
+            comb = mapa.get((dir_v, dir_h))
+            if comb: return Accao("mover", {"direcao": comb})
+
+        # Cardinal fallback
+        if abs(dx) > abs(dy):
+            return Accao("mover", {"direcao": "este" if dx > 0 else "oeste"})
+        else:
+            return Accao("mover", {"direcao": "sul" if dy > 0 else "norte"})
+
+    def atualizar(self, recompensa: float):
+        pass # Não aprende, segue regra fixa

@@ -1,0 +1,45 @@
+{
+    "tipo": "farol",
+    "ambiente": {
+        "pos_farol": [
+            10,
+            10
+        ],
+        "dimensao": [
+            20,
+            20
+        ],
+        "obstaculos": [
+            [
+                5,
+                5
+            ],
+            [
+                5,
+                6
+            ],
+            [
+                7,
+                8
+            ]
+        ]
+    },
+    "agentes": [
+        {
+            "nome": "Robo_Alpha",
+            "posicao": [
+                0,
+                0
+            ],
+            "energia": 100
+        },
+        {
+            "nome": "Robo_Beta",
+            "posicao": [
+                1,
+                1
+            ],
+            "energia": 50
+        }
+    ]
+}

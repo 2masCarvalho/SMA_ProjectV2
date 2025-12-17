@@ -1,0 +1,25 @@
+{
+    "tipo": "farol",
+    "ambiente": {
+        "pos_farol": [
+            8,
+            8
+        ],
+        "dimensao": [
+            10,
+            10
+        ],
+        "obstaculos": []
+    },
+    "agentes": [
+        {
+            "classe": "AgenteRL",
+            "ficheiro_config": "/JSONFILES/config_agente_qlearning.json",
+            "nome": "Agente_QLearning",
+            "posicao": [
+                2,
+                2
+            ]
+        }
+    ]
+}

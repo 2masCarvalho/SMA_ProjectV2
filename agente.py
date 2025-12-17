@@ -79,26 +79,7 @@ class Agente(ABC, threading.Thread):
 
     @staticmethod
     def cria(nome_do_ficheiro_parametros: str):
-        with open(nome_do_ficheiro_parametros, "r") as f:
-            params = json.load(f)
-
-        tipo = params["tipo"]
-        agentes_info = params["agentes"]
-        agentes = []
-
-        if tipo == "farol":
-            for agente_data in agentes_info:
-                # Assuming AgenteDirecional is defined or imported
-                agentes.append(AgenteDirecional(agente_data.get("nome", "Agente"), agente_data.get("posicao"), agente_data.get("energia", 100)))
-        elif tipo == "labirinto":
-            for agente_data in agentes_info:
-                agente_tipo = agente_data.get("subtipo", "explorador")
-                if agente_tipo == "explorador":
-                    # Assuming AgenteExplorador is defined or imported
-                    agentes.append(AgenteExplorador(agente_data.get("nome", "Agente"), agente_data.get("posicao")))
-                elif agente_tipo == "inteligente":
-                    # Assuming AgenteInteligente is defined or imported
-                    agentes.append(AgenteInteligente(agente_data.get("nome", "Agente"), agente_data.get("posicao")))
+        
         return agentes
 
 class AgenteDirecional(Agente):

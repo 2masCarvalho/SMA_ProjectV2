@@ -17,13 +17,13 @@ def treinar_farol():
     print("=== Treino: Problema do Farol (Q-Learning) ===")
     
     # Parâmetros de Treino
-    NUM_EPISODIOS = 100
-    MAX_PASSOS_POR_EPISODIO = 50
+    NUM_EPISODIOS = 1000
+    MAX_PASSOS_POR_EPISODIO = 100
     Q_TABLE_FILE = "qtable_farol.pkl"
     
     # 1. Configurar Política
     accoes_possiveis = [(0, 1), (0, -1), (1, 0), (-1, 0), (1, 1), (1, -1), (-1, 1), (-1, -1)] # 8 direções
-    politica = PoliticaQLearning(accoes_possiveis, alpha=0.1, gamma=0.9, epsilon=0.1)
+    politica = PoliticaQLearning(accoes_possiveis, alpha=0.5, gamma=0.9, epsilon=0.5)
     
     # Carregar política existente se houver (para continuar treino)
     if os.path.exists(Q_TABLE_FILE):
@@ -36,7 +36,7 @@ def treinar_farol():
         ambiente = AmbienteFarol(
             farol_pos=(8, 8), 
             dimensoes=(10, 10),
-            obstaculos=[(5, 5), (2, 2)]
+            obstaculos=[(5,5),(2,2), (4,5)]
         )
         
         agente = AgenteRL("AgenteAprendiz", politica)
@@ -44,7 +44,7 @@ def treinar_farol():
         # Instalar sensores para consistência com o teste
         sensor_bussola = SensorDirecao()
         sensor_visao = SensorVisao(raio_visao=1.5)
-        agente.instala(sensor_visao)
+        #agente.instala(sensor_visao)
         agente.instala(sensor_bussola)
         
         ambiente.adicionar_agente(agente, pos_inicial_agente)
@@ -52,7 +52,7 @@ def treinar_farol():
         motor = MotorDeSimulacao(ambiente, [agente])
         
         # Reduzir epsilon ao longo do tempo (Exploration Decay)
-        politica.epsilon = max(0.01, politica.epsilon * 0.99)
+        politica.epsilon = max(0.01, politica.epsilon * 0.995)
         
         # Loop do Episódio
         passos = 0

@@ -31,7 +31,7 @@ def testar_farol_visual_rl():
     ambiente = AmbienteFarol(
         farol_pos=(8, 8), 
         dimensoes=(largura, altura),
-        obstaculos=[(5, 5), (2, 2)]
+        obstaculos=[(5,5),(2,2), (4,5)]
     )
     
     # 3. Configurar Agente
@@ -39,7 +39,7 @@ def testar_farol_visual_rl():
     # Criar um sensor que sabe calcular a direção
     sensor_bussola = SensorDirecao()
     sensor_visão = SensorVisao(raio_visao=1.5)
-    agente.instala(sensor_visão)
+    #agente.instala(sensor_visão)
     agente.instala(sensor_bussola)
     ambiente.adicionar_agente(agente, (0, 0))
     

@@ -1,0 +1,15 @@
+{
+    "alpha": 0.1,
+    "gamma": 0.9,
+    "epsilon": 0,
+    "accoes": [
+        "norte",
+        "sul",
+        "este",
+        "oeste",
+        "nordeste",
+        "sudeste",
+        "sudoeste",
+        "noroeste"
+    ]
+}

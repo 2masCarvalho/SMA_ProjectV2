@@ -73,3 +73,49 @@ class SensorDirecao(Sensor):
         if pos_agente is not None:
             obs["posicao"] = pos_agente
         return Observacao(obs)
+
+class SensorProximidade(Sensor):
+    def __init__(self, raio_visao: int = 1):
+        # O raio 1 significa verificar as 8 células vizinhas
+        self.raio_visao = raio_visao
+        
+        # As 8 direções de movimento (dx, dy)
+        self.direcoes_vizinhanca = [
+            (0, 1), (0, -1), (1, 0), (-1, 0), # Cardinais
+            (1, 1), (1, -1), (-1, 1), (-1, -1) # Diagonais
+        ]
+
+    def detetar(self, ambiente, agente) -> Observacao:
+        # Obter a posição atual do agente
+        pos_agente = ambiente.agentes_posicoes.get(agente)
+        
+        if pos_agente is None:
+            return Observacao({"erro": "agente_nao_posicionado"})
+        
+        # O estado (observação) deve ser um dicionário que mapeia a direção 
+        # para a presença de um obstáculo (True/False)
+        deteccao_obstaculos = {}
+        
+        # Converter pos_agente de (x, y)
+        ax, ay = pos_agente
+        
+        for dx, dy in self.direcoes_vizinhanca:
+            # Calcular a posição vizinha (apenas 1 passo, pois raio_visao é 1)
+            px = ax + dx
+            py = ay + dy
+            
+            pos_vizinha = (px, py)
+            
+            # Verificar se a posição vizinha contém um obstáculo
+            # Assumimos que 'ambiente.obstaculos' é um conjunto ou lista de tuplas (x, y)
+            
+            is_obstaculo = pos_vizinha in ambiente.obstaculos
+            
+            # Adicionar ao dicionário de deteção. Usamos o vetor (dx, dy) como chave.
+            deteccao_obstaculos[f"obs_{dx}_{dy}"] = is_obstaculo
+            
+        # Incluir a posição atual para completar o estado
+        deteccao_obstaculos["posicao"] = pos_agente
+        
+        # Devolver a observação
+        return Observacao({"proximidade_obstaculos": deteccao_obstaculos})
