@@ -2,71 +2,131 @@ import json
 from agente import Agente
 from Modelos import Accao, Observacao
 from Politica import PoliticaQLearning
+from Sensor import SensorDirecao, SensorProximidade
 
 class AgenteRL(Agente):
-    """Agente que usa uma política (ex: Q-Learning) para tomar decisões."""
-    
-    # --- MUDANÇA 1: A assinatura do init agora aceita o que vem do JSON ---
     def __init__(self, nome: str, posicao: tuple, ficheiro_config: str):
         super().__init__(nome)
         self.cor = "red"
-        self.posicao = posicao # Guardar a posição inicial
+        self.posicao = posicao 
         
-        # --- MUDANÇA 2: Carregar a configuração e criar a política ---
-        self.politica = self._criar_politica_do_ficheiro(ficheiro_config)
-
+        # --- CORREÇÃO DO ERRO DE CAMINHO ---
+        # Removemos as barras do início ('/' ou '\') para garantir que 
+        # o Python procura na pasta do projeto e não na raiz do PC.
+        caminho_limpo = ficheiro_config.lstrip('/').lstrip('\\')
+        
+        self.ficheiro_config = caminho_limpo
+        # Agora o ficheiro de memória também fica com o caminho correto
+        self.ficheiro_memoria = caminho_limpo.replace(".json", ".pkl")
+        
+        # Carregar política usando o caminho limpo
+        self.politica = self._criar_politica_do_ficheiro(self.ficheiro_config)
+        
+        # Tentar carregar memória existente
+        if self.politica:
+            self.politica.carregar(self.ficheiro_memoria)
+    # --- MÉTODOS PRIVADOS ---
     def _criar_politica_do_ficheiro(self, caminho: str):
-        """Lê o JSON e instancia a política QLearning."""
         try:
-            # Limpeza do caminho se necessário
             caminho_limpo = caminho.lstrip('/') if caminho.startswith('/') else caminho
-            
             with open(caminho_limpo, 'r') as f:
                 params = json.load(f)
-                
-            print(f"[{self.nome}] A carregar política de {caminho_limpo}...")
             
-            # Aqui crias a tua política com os dados do JSON
-            # Exemplo de como o JSON pode ser usado:
+            accoes = params.get("accoes", ["norte", "sul", "este", "oeste", 
+                                          "nordeste", "sudeste", "sudoeste", "noroeste"])
+            
             return PoliticaQLearning(
-                accoes_possiveis=params.get("accoes", ["norte", "sul", "este", "oeste"]),
-                alpha=params.get("alpha", 0.1),   # Taxa de aprendizagem
-                gamma=params.get("gamma", 0.9),   # Fator de desconto
-                epsilon=params.get("epsilon", 0.1) # Exploração
+                accoes_possiveis=accoes,
+                alpha=params.get("alpha", 0.1),
+                gamma=params.get("gamma", 0.9),
+                epsilon=params.get("epsilon", 0.1)
             )
-            
         except Exception as e:
-            print(f"ERRO CRÍTICO: Não foi possível carregar a política para {self.nome}: {e}")
-            # Retorna uma política vazia ou default para não crashar
+            print(f"ERRO: {e}")
             return None 
+
+    def _vetor_para_cardinal(self, dx, dy):
+        if dx == 0 and dy == 0: return "parado"
+        limiar = 0.3
+        v, h = "", ""
+        if dy < -limiar: v = "norte"
+        elif dy > limiar: v = "sul"
+        if dx > limiar: h = "este"
+        elif dx < -limiar: h = "oeste"
+        
+        mapa = {
+            ("norte", "este"): "nordeste", ("norte", "oeste"): "noroeste",
+            ("sul", "este"): "sudeste", ("sul", "oeste"): "sudoeste"
+        }
+        return mapa.get((v, h), v or h)
+
+    # ==========================================================
+    # IMPLEMENTAÇÃO OBRIGATÓRIA (NOMES CORRIGIDOS)
+    # ==========================================================
+
+    def instala(self, sensor):
+        super().instala(sensor)
 
     def observacao(self, obs: Observacao):
         super().observacao(obs)
 
-    def age(self) -> Accao:
-        # 1. Verificar Sensores Visuais (Prioridade)
-        if self.sensores:
-            for sensor in self.sensores:
-                obs = sensor.detetar(self.ambiente, self)
-                # Nota: Garante que 'obs' aqui é um dicionário ou que Observacao tem .get()
-                val = obs.get("farol_visto") if isinstance(obs, dict) else getattr(obs, "dados", {}).get("farol_visto")
-                
-                if val:
-                    print(f"[{self.nome}] Contacto visual! A iniciar aproximação final...")
-                    # Assume-se que a info da direção está na observação
-                    direcao = obs.get("direcao_visual") if isinstance(obs, dict) else getattr(obs, "dados", {}).get("direcao_visual")
-                    return Accao("mover", {"direcao": direcao})
+    # CORREÇÃO 1: Nome exato igual à classe mãe (snake_case)
+    def avaliacao_estado_atual(self, recompensa: float):
+        super().avaliacao_estado_atual(recompensa)
+        
+        if self.politica:
+            self.politica.atualizar(recompensa)
+            if self.passos % 100 == 0:
+                self.politica.salvar(self.ficheiro_memoria)
 
-        # 2. Se não viu nada, usa a Memória (Q-Learning)
-        if self.politica and self.ultima_observacao:
-            return self.politica.selecionar_accao(self.ultima_observacao)
+    # CORREÇÃO 2: Adicionado o método comunica que estava em falta
+    def comunica(self, mensagem: str, de_agente):
+        pass
+
+    def age(self) -> Accao:
+        # 1. Construir o Estado
+        direcao_farol = "desconhecida"
+        obstaculos_perto = tuple([0]*8)
+
+        # DEBUG: Verificar se tem sensores
+        if not self.sensores:
+            print(f"[ALERTA] {self.nome} NÃO TEM SENSORES INSTALADOS!")
+
+        for s in self.sensores:
+            if isinstance(s, SensorDirecao):
+                obs = s.detetar(self.ambiente, self)
+                d = obs.dados.get("direcao", (0,0))
+                direcao_farol = self._vetor_para_cardinal(d[0], d[1])
+            elif isinstance(s, SensorProximidade):
+                obs = s.detetar(self.ambiente, self)
+                dados_prox = obs.dados.get("proximidade_obstaculos", {})
+                chaves_ordem = [
+                    (0, -1), (0, 1), (1, 0), (-1, 0), 
+                    (1, -1), (1, 1), (-1, 1), (-1, -1)
+                ]
+                obstaculos_perto = tuple(
+                    1 if dados_prox.get(f"obs_{x}_{y}") else 0 
+                    for x, y in chaves_ordem
+                )
+
+        estado_rl = (direcao_farol, obstaculos_perto)
+
+        # DEBUG: O que é que ele está a ver?
+        # print(f"ESTADO: Dir={direcao_farol} | Obs={obstaculos_perto}")
+
+        obs_para_politica = Observacao({
+            "estado_customizado": estado_rl,
+            "posicao": self.posicao 
+        })
+
+        if self.politica:
+            accao = self.politica.selecionar_accao(obs_para_politica)
+            # DEBUG: O que é que ele decidiu?
+            # print(f"DECISÃO: {accao.parametros.get('direcao')} (Epsilon atual: {self.politica.epsilon})")
+            return accao
         
         return Accao("parar")
 
-    def avaliacao_estado_atual(self, recompensa: float):
-        super().avaliacao_estado_atual(recompensa)
+    def stop(self):
         if self.politica:
-            self.politica.atualizar(recompensa)
-    
-    def comunica(self, mensagem: str, de_agente: Agente):
-        pass
+            self.politica.salvar(self.ficheiro_memoria)

@@ -6,6 +6,7 @@ from AgenteRL import AgenteRL
 from AgenteNormal import AgenteNormal
 from agente import AgenteDirecional as AgenteFarol
 from Sensor import SensorVisao, SensorDirecao, SensorProximidade
+from AmbienteLabirinto import AmbienteLabirinto
 
 class MotorDeSimulacao:
     def __init__(self, ambiente , agentes):
@@ -49,79 +50,79 @@ class MotorDeSimulacao:
         ambiente = None
         agentes = []
 
-        # VERIFICAÇÃO 1: O tipo coincide?
+        # Variáveis auxiliares para evitar duplicar código de criação de agentes
+        env_params = params["ambiente"]
+        lista_agentes_json = params.get("agentes", [])
+
+        # ==========================================
+        # LÓGICA 1: AMBIENTE FAROL
+        # ==========================================
         if tipo == "farol":
             print("DEBUG: Entrou na lógica 'farol'.")
-            env_params = params["ambiente"]
-            
-            # 1. Criar o Ambiente
             ambiente = AmbienteFarol(
                 farol_pos=tuple(env_params["pos_farol"]),
                 dimensoes=tuple(env_params["dimensao"]),
                 obstaculos=[tuple(o) for o in env_params.get("obstaculos", [])]
             )
-            
-            lista_agentes_json = params.get("agentes", [])
-            print(f"DEBUG: Encontrei {len(lista_agentes_json)} configurações de agentes no JSON.")
 
-            # 2. Criar os Agentes
-            for i, agente_info in enumerate(lista_agentes_json):
-                nome_classe = agente_info.get("classe", "AgenteFarol")
-                nome = agente_info.get("nome", "Agente")
-                pos_raw = agente_info.get("posicao", [0, 0])
-                posicao = tuple(pos_raw)
-                caminho_config = agente_info.get("ficheiro_config", "")
-                
-                print(f"DEBUG: A processar Agente {i} | Classe: '{nome_classe}' | Nome: {nome}")
-
-                novo_agente = None
-
-                # VERIFICAÇÃO 2: Instanciar e CONFIGURAR SENSORES
-                if nome_classe.strip() == "AgenteRL":
-                    print("   -> A criar AgenteRL...")
-                    novo_agente = AgenteRL(nome, posicao, caminho_config)
-                    
-                    # --- INSTALAÇÃO DE SENSORES (NOVO) ---
-                    print("   -> Instalando sensores no AgenteRL...")
-                    # Visão: Para detetar o farol quando estiver a 3 metros ou menos
-                    #novo_agente.instala(SensorVisao(raio_visao=3.0))
-                    # Direção: Bússola que aponta para o farol (essencial para ele aprender rápido)
-                    novo_agente.instala(SensorDirecao())
-                    # Proximidade: (Opcional) Para detetar paredes
-                    #novo_agente.instala(SensorProximidade())
-                    
-                elif nome_classe.strip() == "AgenteNormal":
-                    print("   -> A criar AgenteNormal...")
-                    novo_agente = AgenteNormal(nome, posicao, caminho_config)
-                    
-                    # --- ALTERAÇÃO AQUI ---
-                    # 1. OBRIGATÓRIO: Sem isto ele não sabe onde está o farol
-                    novo_agente.instala(SensorDirecao())
-                    
-                    # 3. Opcional: Se quiseres que ele também tenha "visão" de perto
-                    #novo_agente.instala(SensorVisao(raio_visao=3.0))
-                    
-                else:
-                    print(f"   -> AVISO: Classe '{nome_classe}' não corresponde a nenhum IF known.")
-
-                # 3. Adicionar ao Ambiente e à Lista
-                if novo_agente:
-                    ambiente.adicionar_agente(novo_agente, posicao)
-                    
-                    # Garantir que a posição interna está correta
-                    if hasattr(novo_agente, 'posicao'):
-                        novo_agente.posicao = posicao
-                        
-                    agentes.append(novo_agente)
-                    print(f"   -> Agente adicionado com sucesso. Total atual: {len(agentes)}")
-                else:
-                    print("   -> ERRO: Agente não foi criado (ficou None).")
-
+        # ==========================================
+        # LÓGICA 2: AMBIENTE LABIRINTO (NOVO)
+        # ==========================================
         elif tipo == "labirinto":
-            # Podes adicionar lógica de labirinto aqui se precisares
-            pass
+            print("DEBUG: Entrou na lógica 'labirinto'.")
+            ambiente = AmbienteLabirinto(
+                pos_saida=tuple(env_params["pos_saida"]), # JSON usa "pos_saida"
+                dimensoes=tuple(env_params["dimensao"]),
+                obstaculos=[tuple(o) for o in env_params.get("obstaculos", [])]
+            )
+        
         else:
-            print(f"DEBUG: ERRO - Tipo '{tipo}' não é 'farol' nem 'labirinto'.")
+            print(f"DEBUG: ERRO - Tipo '{tipo}' desconhecido.")
+            return None
+
+        # ==========================================
+        # CRIAÇÃO COMUM DOS AGENTES
+        # ==========================================
+        print(f"DEBUG: Encontrei {len(lista_agentes_json)} agentes.")
+
+        for i, agente_info in enumerate(lista_agentes_json):
+            nome_classe = agente_info.get("classe", "AgenteFarol")
+            nome = agente_info.get("nome", "Agente")
+            posicao = tuple(agente_info.get("posicao", [0, 0]))
+            caminho_config = agente_info.get("ficheiro_config", "")
+            
+            print(f"DEBUG: A processar Agente {i} | {nome_classe}")
+            novo_agente = None
+
+            if nome_classe.strip() == "AgenteRL":
+                novo_agente = AgenteRL(nome, posicao, caminho_config)
+                
+                # Instalação de Sensores
+                # DIREÇÃO: Obrigatório (saber para onde ir)
+                novo_agente.instala(SensorDirecao())
+                
+                # PROXIMIDADE: CRÍTICO NO LABIRINTO
+                # No labirinto, precisamos MESMO de saber onde estão as paredes
+                novo_agente.instala(SensorProximidade())
+                
+                # Visão: Opcional
+                # novo_agente.instala(SensorVisao(raio_visao=3.0))
+                
+            elif nome_classe.strip() == "AgenteNormal":
+                novo_agente = AgenteNormal(nome, posicao, caminho_config)
+                
+                # Agente Normal precisa de direção para o modo 'guloso'
+                novo_agente.instala(SensorDirecao())
+                novo_agente.instala(SensorProximidade()) # Útil se quiseres que ele evite bater
+                
+            else:
+                print(f"   -> AVISO: Classe desconhecida.")
+
+            if novo_agente:
+                ambiente.adicionar_agente(novo_agente, posicao)
+                if hasattr(novo_agente, 'posicao'): novo_agente.posicao = posicao
+                agentes.append(novo_agente)
+                print(f"   -> Agente {nome} adicionado.")
 
         print(f"DEBUG FINAL: Motor criado com {len(agentes)} agentes.")
         return MotorDeSimulacao(ambiente, agentes)

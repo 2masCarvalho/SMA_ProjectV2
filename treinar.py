@@ -1,9 +1,29 @@
 import time
 import os
 from Motor import MotorDeSimulacao
+import sys
+
+# Configuração dos Cenários Disponíveis
+CENARIOS = {
+    "1": "JSONFILES/farol1copy.json",
+    "2": "JSONFILES/labirinto1.json"
+}
+
+def escolher_cenario():
+    print("\n=== ESCOLHA O CENÁRIO ===")
+    print("1. Farol (Básico)")
+    print("2. Labirinto (Zig-Zag)")
+    
+    escolha = input("Opção (1 ou 2): ").strip()
+    
+    # Retorna o caminho ou o Farol por defeito se falhar
+    return CENARIOS.get(escolha, CENARIOS["1"])
 
 def treinar_agente(n_episodios=1000):
-    print(f"--- A INICIAR TREINO RÁPIDO ({n_episodios} EPISÓDIOS) ---")
+    # 1. Perguntar qual o cenário
+    ficheiro_cenario = escolher_cenario()
+    
+    print(f"--- A INICIAR TREINO NO CENÁRIO: {ficheiro_cenario} ---")
     start_time = time.time()
 
     # Caminho do ficheiro de configuração

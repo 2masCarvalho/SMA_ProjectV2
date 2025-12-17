@@ -41,24 +41,25 @@ class PoliticaQLearning(Politica):
         self.ultimo_estado = None
         self.ultima_accao = None
         self.ultima_recompensa = 0.0
-
-    # No ficheiro Politica.py, dentro de PoliticaQLearning
-
+    
     def get_estado_key(self, observacao: Observacao):
-        # 1. Tentar obter os dados de forma segura (funciona para dict e objetos)
-        dados = observacao if isinstance(observacao, dict) else getattr(observacao, "dados", {})
-        
-        # 2. Se observacao for um objeto mas não tiver .dados, tenta usar __dict__
+        # 1. Tentar obter os dados
+        dados = observacao.dados if hasattr(observacao, 'dados') else observacao
         if not isinstance(dados, dict):
-             # Último recurso: tenta aceder ao atributo posicao diretamente
-             pos = getattr(observacao, "posicao", None)
-        else:
-             pos = dados.get("posicao")
-        
-        # O resto mantém-se igual...
-        if pos is None:
             return None
-        return tuple(pos)
+
+        # --- ALTERAÇÃO AQUI ---
+        # Prioridade 1: Se o agente já processou os sensores e mandou um estado pronto
+        if "estado_customizado" in dados:
+            return dados["estado_customizado"] # Retorna o tuplo (Direcao, Obstaculos)
+
+        # Prioridade 2: Fallback para posição (x,y) se não houver sensores (o modo antigo)
+        pos = dados.get("posicao")
+        if pos is not None:
+            return tuple(pos)
+            
+        return None
+
 
     def selecionar_accao(self, observacao: Observacao) -> Accao:
         estado_atual = self.get_estado_key(observacao)

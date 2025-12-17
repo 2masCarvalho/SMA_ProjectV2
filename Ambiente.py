@@ -33,3 +33,11 @@ class Ambiente(ABC):
     def _agir_safe(self, accao: Accao, agente: Agente) -> float:
         """Implementação da ação (chamada dentro do lock)."""
         pass
+
+    @abstractmethod
+    def simulacao_concluida(self) -> bool:
+        """
+        Retorna True se o objetivo do ambiente foi atingido.
+        O Motor usa isto para saber quando parar.
+        """
+        pass
