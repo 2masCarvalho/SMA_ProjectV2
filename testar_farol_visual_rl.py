@@ -35,7 +35,9 @@ def testar_farol_visual_rl():
     )
     
     # 3. Configurar Agente
-    agente = AgenteRL("AgenteTreinado", politica)
+    config_file = "JSONFILES/config_agente_qlearning.json"
+    agente = AgenteRL("AgenteTreinado", (0, 0), config_file)
+    agente.politica = politica
     # Criar um sensor que sabe calcular a direção
     sensor_bussola = SensorDirecao()
     sensor_visão = SensorVisao(raio_visao=1.5)
