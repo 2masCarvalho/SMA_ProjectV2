@@ -1,6 +1,6 @@
 # Ficheiro AgenteNormal.py completo e limpo
 import json
-from agente import Agente
+from Agente import Agente
 from Modelos import Accao
 from Sensor import SensorDirecao
 # Importar as políticas novas

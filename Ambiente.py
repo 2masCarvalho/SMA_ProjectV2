@@ -6,7 +6,7 @@ from Modelos import Observacao, Accao
 # But Ambiente uses Agente in type hints.
 # For now, let's use string forward references or TYPE_CHECKING, but simple import might work if Agente doesn't import Ambiente.
 # Agente.py does NOT import Ambiente.
-from agente import Agente
+from Agente import Agente
 
 class Ambiente(ABC):
     """Interface base para todos os ambientes de simulação."""

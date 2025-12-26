@@ -11,7 +11,7 @@ from AgenteRL import AgenteRL
 from Politica import PoliticaQLearning
 from Motor import MotorDeSimulacao
 
-from Sensor import SensorDirecao, SensorVisao
+from Sensor import SensorDirecao
 
 def treinar_farol():
     print("=== Treino: Problema do Farol (Q-Learning) ===")
@@ -43,7 +43,7 @@ def treinar_farol():
         
         # Instalar sensores para consistência com o teste
         sensor_bussola = SensorDirecao()
-        sensor_visao = SensorVisao(raio_visao=1.5)
+        #sensor_visao = SensorVisao(raio_visao=1.5)
         #agente.instala(sensor_visao)
         agente.instala(sensor_bussola)
         

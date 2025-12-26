@@ -1,5 +1,5 @@
 import json
-from agente import Agente
+from Agente import Agente
 from Modelos import Accao, Observacao
 from Politica import PoliticaQLearning
 from Sensor import SensorDirecao, SensorProximidade

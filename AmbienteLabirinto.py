@@ -11,7 +11,6 @@ class AmbienteLabirinto(Ambiente):
         # Mapeamos a saída para 'farol_pos' para que os sensores existentes funcionem sem alterações
         self.farol_pos = pos_saida 
         self.pos_saida = pos_saida
-        
         self.dimensoes = dimensoes
         self.largura, self.altura = dimensoes
         self.obstaculos = obstaculos if obstaculos else []
@@ -85,9 +84,9 @@ class AmbienteLabirinto(Ambiente):
         
         recompensa = (dist_antiga - dist_nova) * 10
         
-        # Chegou à saída?
+        # Chegou à saída
         if dist_nova < 1.0:
-            recompensa += 500 # Grande prémio para o labirinto
+            recompensa += 500 
             print(f"!!! {agente.nome} ESCAPOU DO LABIRINTO !!!")
             self._alvo_atingido = True
             

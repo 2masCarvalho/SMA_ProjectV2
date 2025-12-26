@@ -2,14 +2,7 @@
     "alpha": 0.1,
     "gamma": 0.9,
     "epsilon": 0.6,
-    "accoes": [
-        "norte",
-        "sul",
-        "este",
-        "oeste",
-        "nordeste",
-        "sudeste",
-        "sudoeste",
-        "noroeste"
-    ]
+    "accoes": 
+    ["norte","sul","este","oeste",
+    "nordeste","sudeste","sudoeste","noroeste"]
 }
