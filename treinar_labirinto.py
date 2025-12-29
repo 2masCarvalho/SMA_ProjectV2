@@ -9,7 +9,7 @@ def treinar_labirinto():
     print("=== Iniciando Treino: Problema do Labirinto ===")
     
     # 1. Carregar Configurações do Mapa
-    with open("JSONFILES/labirinto1.json", "r") as f:
+    with open("JSONFILES/labirinto5.json", "r") as f:
         config = json.load(f)
     
     amb_cfg = config["ambiente"]
@@ -34,9 +34,9 @@ def treinar_labirinto():
     motor = MotorDeSimulacao(ambiente, [agente])
     
     # 3. Parâmetros de Treino
-    EPISODIOS = 1000  # Labirintos exigem mais episódios que o farol
+    EPISODIOS = 2000  # Labirintos exigem mais episódios que o farol
     MAX_PASSOS = 200  # Limite de passos para o agente não ficar perdido para sempre
-    Q_TABLE_FILE = "qtable_labirinto.pkl"
+    Q_TABLE_FILE = "JSONFILES/config_agente_qlearning_labirinto.pkl"
     
     print(f"Treinando por {EPISODIOS} episódios...")
     

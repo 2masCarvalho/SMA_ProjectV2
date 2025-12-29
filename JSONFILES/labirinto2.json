@@ -1,0 +1,102 @@
+{
+    "tipo": "labirinto",
+    "ambiente": {
+        "pos_saida": [
+            7,
+            7
+        ],
+        "dimensao": [
+            8,
+            8
+        ],
+        "obstaculos": [
+            [
+                0,
+                4
+            ],
+            [
+                1,
+                1
+            ],
+            [
+                1,
+                0
+            ],
+            [
+                1,
+                3
+            ],
+            [
+                1,
+                6
+            ],
+            [
+                2,
+                6
+            ],
+            [
+                3,
+                1
+            ],
+            [
+                3,
+                2
+            ],
+            [
+                3,
+                3
+            ],
+            [
+                3,
+                4
+            ],
+            [
+                3,
+                5
+            ],
+            [
+                4,
+                2
+            ],
+            [
+                5,
+                1
+            ],
+            [
+                5,
+                4
+            ],
+            [
+                5,
+                5
+            ],
+            [
+                5,
+                7
+            ],
+            [
+                6,
+                2
+            ],
+            [
+                6,
+                5
+            ],
+            [
+                7,
+                5
+            ]
+        ]
+    },
+    "agentes": [
+        {
+            "classe": "AgenteRL",
+            "ficheiro_config": "JSONFILES/config_agente_qlearning_labirinto.json",
+            "nome": "Agente_Rat",
+            "posicao": [
+                4,
+                1
+            ]
+        }
+    ]
+}

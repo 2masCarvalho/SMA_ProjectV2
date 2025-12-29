@@ -7,13 +7,19 @@ import sys
 # Configuração dos Cenários Disponíveis
 CENARIOS = {
     "1": "JSONFILES/farol1copy.json",
-    "2": "JSONFILES/labirinto1.json"
+    "2": "JSONFILES/labirinto1.json",
+    "3": "JSONFILES/labirinto3.json",
+    "4": "JSONFILES/labirinto4.json",
+    "5": "JSONFILES/labirinto5.json"
 }
 
 def escolher_cenario():
     print("\n=== ESCOLHA O CENÁRIO ===")
     print("1. Farol (Básico)")
     print("2. Labirinto (Zig-Zag)")
+    print("3. Labirinto (Novo Teste)")
+    print("4. Labirinto (Hardcore Snake)")
+    print("5. Labirinto (Mini Snake 8x8)")
     
     escolha = input("Opção (1 ou 2): ").strip()
     
@@ -84,7 +90,7 @@ if __name__ == "__main__":
                 break
             
             # 3. Pausa para controlar a velocidade da animação
-            time.sleep(0.1) 
+            time.sleep(0.4) 
             
     except KeyboardInterrupt:
         print("\nInterrompido pelo utilizador (Ctrl+C).")

@@ -100,7 +100,7 @@ class AmbienteLabirinto(Ambiente):
         recompensa = -1.0
 
         # Progresso em direção à saída
-        recompensa += (dist_antiga - dist_nova) * 10
+        recompensa += (dist_antiga - dist_nova) * 2
 
         # Penalizar estagnação / afastamento
         #if dist_nova >= dist_antiga:

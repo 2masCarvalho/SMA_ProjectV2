@@ -12,7 +12,7 @@ def testar_labirinto_visual():
     print("=== Iniciando Teste Visual: Agente no Labirinto ===")
     
     # 1. Carregar Configuração do Mapa
-    with open("JSONFILES/labirinto1.json", "r") as f:
+    with open("JSONFILES/labirinto2.json", "r") as f:
         config = json.load(f)
     
     amb_cfg = config["ambiente"]
