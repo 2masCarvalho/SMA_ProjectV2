@@ -30,7 +30,7 @@ class PoliticaAleatoria(Politica):
 
 class PoliticaQLearning(Politica):
     """Implementa Q-Learning."""
-    def __init__(self, accoes_possiveis: List[str], alpha=0.1, gamma=0.9, epsilon=0.3):
+    def __init__(self, accoes_possiveis: List[str], alpha=0.1, gamma=0.9, epsilon=0.9):
         self.q_table = {} # {(x, y): {accao: valor}}
         self.accoes = accoes_possiveis
         self.alpha = alpha
@@ -66,10 +66,10 @@ class PoliticaQLearning(Politica):
 
         # --- DEBUG PRINT ---
         conhecido = estado_atual in self.q_table
-        print(f"Estado: {estado_atual} | Conhecido? {conhecido}")
+        #print(f"Estado: {estado_atual} | Conhecido? {conhecido}")
         if conhecido:
             valores = self.q_table[estado_atual]
-            print(f"   -> Valores: {valores}")
+            #print(f"   -> Valores: {valores}")
         
         # 1. Se tivermos um passo anterior pendente, fazemos o update do Q-Value agora
         # Q(S, A) = Q(S, A) + alpha * (R + gamma * max(Q(S', a')) - Q(S, A))
@@ -92,6 +92,11 @@ class PoliticaQLearning(Politica):
         # Apenas guardamos a recompensa. O update matemático acontece 
         # quando soubermos o "próximo estado" (na próxima chamada de selecionar_accao)
         self.ultima_recompensa = recompensa
+
+        # --- EPSILON DECAY ---
+        #self.epsilon = max(0.01, self.epsilon * 0.995)
+        #print(f"Epsilon atual: {self.epsilon:.3f}")
+
 
     def _melhor_accao(self, estado):
         if estado not in self.q_table:

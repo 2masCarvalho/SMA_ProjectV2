@@ -4,6 +4,7 @@ from Agente import Agente
 from AmbienteFarol import AmbienteFarol
 from AgenteRL import AgenteRL
 from AgenteNormal import AgenteNormal
+from AgenteLabirinto import AgenteLabirinto
 from Agente import AgenteDirecional as AgenteFarol
 from Sensor import SensorVisao, SensorDirecao, SensorProximidade
 from AmbienteLabirinto import AmbienteLabirinto
@@ -66,7 +67,7 @@ class MotorDeSimulacao:
             )
 
         # ==========================================
-        # LÓGICA 2: AMBIENTE LABIRINTO (NOVO)
+        # LÓGICA 2: AMBIENTE LABIRINTO 
         # ==========================================
         elif tipo == "labirinto":
             print("DEBUG: Entrou na lógica 'labirinto'.")
@@ -113,7 +114,7 @@ class MotorDeSimulacao:
                 
                 # Agente Normal precisa de direção para o modo 'guloso'
                 novo_agente.instala(SensorDirecao())
-                novo_agente.instala(SensorProximidade()) # Útil se quiseres que ele evite bater
+                novo_agente.instala(SensorProximidade()) 
                 
             else:
                 print(f"   -> AVISO: Classe desconhecida.")

@@ -84,7 +84,7 @@ if __name__ == "__main__":
                 break
             
             # 3. Pausa para controlar a velocidade da animação
-            time.sleep(0.1) # 0.1 é mais fluido, 0.2 é mais lento
+            time.sleep(0.1) 
             
     except KeyboardInterrupt:
         print("\nInterrompido pelo utilizador (Ctrl+C).")

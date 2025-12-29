@@ -16,12 +16,15 @@ class AmbienteLabirinto(Ambiente):
         self.obstaculos = obstaculos if obstaculos else []
         self.agentes_posicoes = {}
         self._alvo_atingido = False
+        self.visitas = {} # Para cada agente, um conjunto de posições visitadas
 
     def simulacao_concluida(self) -> bool:
         return self._alvo_atingido
 
     def adicionar_agente(self, agente, pos_inicial: Tuple[int, int]):
         self.agentes_posicoes[agente] = pos_inicial
+        self.visitas[agente] = set()
+        self.visitas[agente].add(pos_inicial)
 
     def observacaoPara(self, agente) -> Observacao:
         # Lógica idêntica ao Farol: vetor para o objetivo
@@ -39,60 +42,126 @@ class AmbienteLabirinto(Ambiente):
     def atualizacao(self):
         pass
 
+
     def _agir_safe(self, accao: Accao, agente) -> float:
-        if accao.tipo != "mover": return 0.0
-        
-        # 1. Traduzir Direção
+        # Ação inválida
+        if accao.tipo != "mover":
+            return -2.0
+
+        # 1. Traduzir direção
         input_direcao = accao.parametros.get("direcao")
-        if not input_direcao: return 0.0
-        
+        if not input_direcao:
+                return -2.0
+
         vetores = {
             "norte": (0, -1), "sul": (0, 1), "este": (1, 0), "oeste": (-1, 0),
-            "nordeste": (1, -1), "sudeste": (1, 1), "sudoeste": (-1, 1), "noroeste": (-1, -1)
+            "nordeste": (1, -1), "sudeste": (1, 1),
+            "sudoeste": (-1, 1), "noroeste": (-1, -1)
         }
-        
-        direcao = (0,0)
-        if isinstance(input_direcao, str):
-            direcao = vetores.get(input_direcao.lower(), (0,0))
-        elif isinstance(input_direcao, (tuple, list)):
-            direcao = input_direcao
 
+        if isinstance(input_direcao, str):
+            dx, dy = vetores.get(input_direcao.lower(), (0, 0))
+        elif isinstance(input_direcao, (tuple, list)):
+            dx, dy = input_direcao
+        else:
+            return -2.0
         pos_atual = self.agentes_posicoes[agente]
-        
-        # 2. Calcular Nova Posição
-        nx = pos_atual[0] + direcao[0]
-        ny = pos_atual[1] + direcao[1]
-        
+
+        # 2. Nova posição (float para distância, int para grelha)
+        nx = pos_atual[0] + dx
+        ny = pos_atual[1] + dy
+
         xi, yi = int(round(nx)), int(round(ny))
         pos_futura = (xi, yi)
 
-        # 3. Verificações
-        # Bateu nas paredes do mundo?
+        # 3. Verificações de validade
+        # Fora do mundo
         if not (0 <= xi < self.largura and 0 <= yi < self.altura):
-            return -100.0
-            
-        # Bateu num obstáculo? (A saída nunca é obstáculo)
-        if pos_futura in self.obstaculos and pos_futura != self.pos_saida:
-            return -50.0
+            return -10.0
 
-        # Atualizar
-        self.agentes_posicoes[agente] = (nx, ny)
-        
-        # 4. Recompensas
-        dist_antiga = math.sqrt((self.pos_saida[0]-pos_atual[0])**2 + (self.pos_saida[1]-pos_atual[1])**2)
-        dist_nova = math.sqrt((self.pos_saida[0]-nx)**2 + (self.pos_saida[1]-ny)**2)
-        
-        recompensa = (dist_antiga - dist_nova) * 10
-        
-        # Chegou à saída
+        # Obstáculo (exceto saída)
+        if pos_futura in self.obstaculos and pos_futura != self.pos_saida:
+            return -5.0
+
+        # 4. Atualizar posição
+        self.agentes_posicoes[agente] = (xi, yi)
+
+        # 5. Recompensas
+        dist_antiga = math.sqrt(
+            (self.pos_saida[0] - pos_atual[0]) ** 2 +
+            (self.pos_saida[1] - pos_atual[1]) ** 2
+        )
+        dist_nova = math.sqrt(
+            (self.pos_saida[0] - xi) ** 2 +
+            (self.pos_saida[1] - yi) ** 2
+        )
+
+        # Penalização base por passo
+        recompensa = -1.0
+
+        # Progresso em direção à saída
+        recompensa += (dist_antiga - dist_nova) * 10
+
+        # Penalizar estagnação / afastamento
+        #if dist_nova >= dist_antiga:
+        #    recompensa -= 2.0
+
+        # Penalização por revisitar posições
+        if pos_futura in self.visitas[agente]:
+            recompensa -= 5.0
+        else:
+            self.visitas[agente].add(pos_futura)
+        # 6. Chegou à saída
         if dist_nova < 1.0:
-            recompensa += 500 
+            recompensa += 500.0
             print(f"!!! {agente.nome} ESCAPOU DO LABIRINTO !!!")
             self._alvo_atingido = True
-            
+
+        # 7. Feedback para o agente (aprendizagem)
         agente.avaliacao_estado_atual(recompensa)
+
         return recompensa
+                
 
     def display(self):
         # Opcional: para debug visual no terminal
         pass
+
+def accoes_validas(self, agente):
+    
+    if agente not in self.agentes_posicoes:
+        return []
+
+    x, y = self.agentes_posicoes[agente]
+
+    direcoes = {
+        "norte": (0, -1),
+        "sul": (0, 1),
+        "este": (1, 0),
+        "oeste": (-1, 0),
+        "nordeste": (1, -1),
+        "sudeste": (1, 1),
+        "sudoeste": (-1, 1),
+        "noroeste": (-1, -1),
+    }
+
+    accoes = []
+
+    for nome, (dx, dy) in direcoes.items():
+        nx = int(round(x + dx))
+        ny = int(round(y + dy))
+
+        # Limites do mundo
+        if not (0 <= nx < self.largura and 0 <= ny < self.altura):
+            continue
+
+        pos_futura = (nx, ny)
+
+        # Obstáculo (exceto saída)
+        if pos_futura in self.obstaculos and pos_futura != self.pos_saida:
+            continue
+
+        accoes.append(nome)
+
+    return accoes
+    

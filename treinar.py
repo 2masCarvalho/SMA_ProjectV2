@@ -27,7 +27,7 @@ def treinar_agente(n_episodios=1000):
     start_time = time.time()
 
     # Caminho do ficheiro de configuração
-    ficheiro_cenario = "JSONFILES/farol1copy.json"
+    #ficheiro_cenario = "JSONFILES/farol1copy.json"
 
     for i in range(1, n_episodios + 1):
         # 1. Criar o motor (isto reinicia o ambiente e carrega o agente)
@@ -44,6 +44,8 @@ def treinar_agente(n_episodios=1000):
             motor.executa()
             passos += 1
             
+            if motor.ambiente.simulacao_concluida():
+                break
             # Critério de paragem: Precisas de saber se o agente chegou
             # Podes verificar a recompensa do agente ou se a distância é 0
             # Para simplificar, assumimos que ele corre max_passos e aprende com isso
@@ -61,4 +63,4 @@ def treinar_agente(n_episodios=1000):
     print("Agora podes correr o 'main.py' para ver o resultado!")
 
 if __name__ == "__main__":
-    treinar_agente(500) # Tenta 500 episódios para começar
+    treinar_agente(3000) # Tenta 500 episódios para começar
