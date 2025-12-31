@@ -1,11 +1,11 @@
 import json
 from typing import List
-from Agente import Agente
+from agente import Agente
 from AmbienteFarol import AmbienteFarol
 from AgenteRL import AgenteRL
 from AgenteNormal import AgenteNormal
 from AgenteLabirinto import AgenteLabirinto
-from Agente import AgenteDirecional as AgenteFarol
+from agente import AgenteDirecional as AgenteFarol
 from Sensor import SensorVisao, SensorDirecao, SensorProximidade
 from AmbienteLabirinto import AmbienteLabirinto
 

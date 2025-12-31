@@ -21,6 +21,9 @@ class Agente(ABC, threading.Thread):
 
     def set_ambiente(self, ambiente):
         self.ambiente = ambiente
+        # --- NOVO: Guardar onde nasceu para poder voltar lá ---
+        if hasattr(self, 'posicao'):
+            self.posicao_inicial = self.posicao        
 
     def run(self):
         self.running = True
