@@ -17,26 +17,22 @@ class SensorVisao(Sensor):
         self.raio_visao = raio_visao
 
     def detetar(self, ambiente, agente) -> Observacao:
-        # 1. Obter posições
-        if not hasattr(ambiente, 'farol_pos') or agente not in ambiente.agentes_posicoes:
-            # Tentar ainda devolver a posição se for possível
-            pos_agente = ambiente.agentes_posicoes.get(agente) if hasattr(ambiente, 'agentes_posicoes') else None
-            if pos_agente is not None:
-                return Observacao({"farol_visto": False, "posicao": pos_agente})
-            return Observacao({"farol_visto": False})
+        # USA O NOVO MÉTODO SCAN (ENCAPSULAMENTO)
+        visao = ambiente.scan(agente, self.raio_visao)
+        
+        pos_agente = visao["posicao_agente"]
+        pos_farol = visao["alvo"]
 
-        pos_agente = ambiente.agentes_posicoes[agente]
-        pos_farol = ambiente.farol_pos
+        if pos_agente is None or pos_farol is None:
+             return Observacao({"farol_visto": False})
 
         # 2. Calcular distância
         dx = pos_farol[0] - pos_agente[0]
         dy = pos_farol[1] - pos_agente[1]
         distancia = math.sqrt(dx**2 + dy**2)
 
-        # 3. Verificar se está nas 8 quadrículas vizinhas
-        # A distância para um vizinho lateral é 1.0, diagonal é ~1.41
+        # 3. Verificar se está dentro do raio
         if 0 < distancia <= self.raio_visao:
-            # Normalizar o vetor para saber a direção exata
             direcao = (dx / distancia, dy / distancia)
             return Observacao({
                 "farol_visto": True,
@@ -50,28 +46,25 @@ class SensorVisao(Sensor):
 class SensorDirecao(Sensor):
     """Sensor que deteta a direção para um alvo (ex: Farol)."""
     def detetar(self, ambiente, agente) -> Observacao:
-        # Tenta obter a posição do alvo e do agente
-        # Esta lógica assume que o ambiente tem 'farol_pos' e 'agentes_posicoes'
-         
-        if hasattr(ambiente, 'farol_pos') and hasattr(ambiente, 'agentes_posicoes'):
-            pos_agente = ambiente.agentes_posicoes.get(agente)
-            if pos_agente:
-                dx = ambiente.farol_pos[0] - pos_agente[0]
-                dy = ambiente.farol_pos[1] - pos_agente[1]
-                dist = math.sqrt(dx**2 + dy**2)
-                if dist > 0:
-                    direcao = (dx / dist, dy / dist)
-                else:
-                    direcao = (0, 0)
-                return Observacao({"direcao": direcao, "distancia": dist, "posicao": pos_agente})
+        # USA O NOVO MÉTODO SCAN (ENCAPSULAMENTO)
+        # Raio infinito para saber a direção global
+        visao = ambiente.scan(agente, raio=9999)
         
-        # Se não conhecemos a posição do agente, devolvemos um dicionário com erro.
-        pos_agente = None
-        if hasattr(ambiente, 'agentes_posicoes'):
-            pos_agente = ambiente.agentes_posicoes.get(agente)
+        pos_agente = visao["posicao_agente"]
+        pos_alvo = visao["alvo"]
+
+        if pos_agente and pos_alvo:
+            dx = pos_alvo[0] - pos_agente[0]
+            dy = pos_alvo[1] - pos_agente[1]
+            dist = math.sqrt(dx**2 + dy**2)
+            if dist > 0:
+                direcao = (dx / dist, dy / dist)
+            else:
+                direcao = (0, 0)
+            return Observacao({"direcao": direcao, "distancia": dist, "posicao": pos_agente})
+        
         obs = {"direcao": (0, 0), "erro": "alvo_nao_encontrado"}
-        if pos_agente is not None:
-            obs["posicao"] = pos_agente
+        if pos_agente: obs["posicao"] = pos_agente
         return Observacao(obs)
 
 class SensorProximidade(Sensor):
@@ -86,36 +79,33 @@ class SensorProximidade(Sensor):
         ]
 
     def detetar(self, ambiente, agente) -> Observacao:
-        # Obter a posição atual do agente
-        pos_agente = ambiente.agentes_posicoes.get(agente)
+        # USA O NOVO MÉTODO SCAN
+        visao = ambiente.scan(agente, raio=self.raio_visao)
+        pos_agente = visao["posicao_agente"]
         
         if pos_agente is None:
             return Observacao({"erro": "agente_nao_posicionado"})
         
-        # O estado (observação) deve ser um dicionário que mapeia a direção 
-        # para a presença de um obstáculo (True/False)
-        deteccao_obstaculos = {}
+        # Lista de obstáculos visíveis
+        obstaculos_visiveis = visao["obstaculos"]
         
-        # Converter pos_agente de (x, y)
+        deteccao_obstaculos = {}
         ax, ay = pos_agente
         
         for dx, dy in self.direcoes_vizinhanca:
-            # Calcular a posição vizinha (apenas 1 passo, pois raio_visao é 1)
             px = ax + dx
             py = ay + dy
-            
             pos_vizinha = (px, py)
             
-            # Verificar se a posição vizinha contém um obstáculo
-            # Assumimos que 'ambiente.obstaculos' é um conjunto ou lista de tuplas (x, y)
+            # Verifica se esta posição vizinha está na lista de obstáculos vistos
+            is_obstaculo = pos_vizinha in obstaculos_visiveis
             
-            is_obstaculo = pos_vizinha in ambiente.obstaculos
+            # --- FIX: Verifica limites do mundo (se o ambiente tiver dimensões definidas) ---
+            if hasattr(ambiente, 'largura') and hasattr(ambiente, 'altura'):
+                if not (0 <= px < ambiente.largura and 0 <= py < ambiente.altura):
+                    is_obstaculo = True
             
-            # Adicionar ao dicionário de deteção. Usamos o vetor (dx, dy) como chave.
             deteccao_obstaculos[f"obs_{dx}_{dy}"] = is_obstaculo
             
-        # Incluir a posição atual para completar o estado
         deteccao_obstaculos["posicao"] = pos_agente
-        
-        # Devolver a observação
         return Observacao({"proximidade_obstaculos": deteccao_obstaculos})

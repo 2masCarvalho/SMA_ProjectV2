@@ -57,7 +57,14 @@ if __name__ == "__main__":
     for agente in motor.agentes:
         if hasattr(agente, 'ficheiro_memoria') and hasattr(agente, 'politica'):
             # Força o agente a usar o ficheiro específico deste cenário
+            # Força o agente a usar o ficheiro específico deste cenário
             agente.ficheiro_memoria = nome_memoria_alvo
+            
+            # --- MODO TESTE ATIVADO ---
+            # Desliga a aprendizagem para vermos apenas o que ele já sabe
+            if hasattr(agente, 'learning_mode'):
+                agente.learning_mode = False
+                print(f"   [{agente.nome}] Modo de Aprendizagem: DESLIGADO (Teste Puro)")
             
             # Tenta carregar
             if os.path.exists(nome_memoria_alvo):
@@ -86,6 +93,10 @@ if __name__ == "__main__":
         for i in range(MAX_PASSOS):
             motor.executa()
             passos += 1
+            
+            # DEBUG: Imprimir posição do primeiro agente
+            if motor.agentes:
+                print(f"Passo {passos}: Pos {motor.agentes[0].posicao}")
             
             if motor.ambiente.simulacao_concluida():
                 print(f"\n>>> SUCESSO! Objetivo atingido em {passos} passos. <<<")

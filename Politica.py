@@ -61,7 +61,7 @@ class PoliticaQLearning(Politica):
         return None
 
 
-    def selecionar_accao(self, observacao: Observacao) -> Accao:
+    def selecionar_accao(self, observacao: Observacao, epsilon_override=None) -> Accao:
         estado_atual = self.get_estado_key(observacao)
 
         # --- DEBUG PRINT ---
@@ -77,7 +77,10 @@ class PoliticaQLearning(Politica):
             self._atualizar_q_table(self.ultimo_estado, self.ultima_accao, self.ultima_recompensa, estado_atual)
 
         # 2. Escolher ação (Epsilon-Greedy)
-        if random.random() < self.epsilon:
+        # Se epsilon_override for passado (ex: 0.0 para teste), usa-se esse.
+        epsilon_atual = epsilon_override if epsilon_override is not None else self.epsilon
+        
+        if random.random() < epsilon_atual:
             accao_nome = random.choice(self.accoes)
         else:
             accao_nome = self._melhor_accao(estado_atual)
@@ -94,7 +97,7 @@ class PoliticaQLearning(Politica):
         self.ultima_recompensa = recompensa
 
         # --- EPSILON DECAY ---
-        #self.epsilon = max(0.01, self.epsilon * 0.995)
+        self.epsilon = max(0.01, self.epsilon * 0.995)
         #print(f"Epsilon atual: {self.epsilon:.3f}")
 
 

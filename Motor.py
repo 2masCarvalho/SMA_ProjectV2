@@ -13,26 +13,21 @@ class MotorDeSimulacao:
     def __init__(self, ambiente , agentes):
         self.ambiente = ambiente
         self.agentes = agentes
-
+        
         self.largura, self.altura = ambiente.dimensoes
 
         for agente in self.agentes:
             agente.set_ambiente(self.ambiente)
             agente.start()
-
-    #O método executa() faz um ciclo completo: todos os agentes observam, 
-    # processam, decidem ação e o ambiente executa. Depois atualiza o ambiente
+    
     def executa(self):
-        # 1. Trigger all agents to start their step
         for agente in self.agentes:
             agente.end_step_event.clear()
             agente.start_step_event.set()
         
-        # 2. Wait for all agents to finish their step
         for agente in self.agentes:
             agente.end_step_event.wait()
             
-        # 3. Update environment
         self.ambiente.atualizacao()
 
     def listaAgentes(self) -> List[Agente]:
@@ -51,13 +46,9 @@ class MotorDeSimulacao:
         ambiente = None
         agentes = []
 
-        # Variáveis auxiliares para evitar duplicar código de criação de agentes
         env_params = params["ambiente"]
         lista_agentes_json = params.get("agentes", [])
 
-        # ==========================================
-        # LÓGICA 1: AMBIENTE FAROL
-        # ==========================================
         if tipo == "farol":
             print("DEBUG: Entrou na lógica 'farol'.")
             ambiente = AmbienteFarol(
@@ -66,13 +57,10 @@ class MotorDeSimulacao:
                 obstaculos=[tuple(o) for o in env_params.get("obstaculos", [])]
             )
 
-        # ==========================================
-        # LÓGICA 2: AMBIENTE LABIRINTO 
-        # ==========================================
         elif tipo == "labirinto":
             print("DEBUG: Entrou na lógica 'labirinto'.")
             ambiente = AmbienteLabirinto(
-                pos_saida=tuple(env_params["pos_saida"]), # JSON usa "pos_saida"
+                pos_saida=tuple(env_params["pos_saida"]), 
                 dimensoes=tuple(env_params["dimensao"]),
                 obstaculos=[tuple(o) for o in env_params.get("obstaculos", [])]
             )
@@ -81,9 +69,6 @@ class MotorDeSimulacao:
             print(f"DEBUG: ERRO - Tipo '{tipo}' desconhecido.")
             return None
 
-        # ==========================================
-        # CRIAÇÃO COMUM DOS AGENTES
-        # ==========================================
         print(f"DEBUG: Encontrei {len(lista_agentes_json)} agentes.")
 
         for i, agente_info in enumerate(lista_agentes_json):
@@ -98,21 +83,13 @@ class MotorDeSimulacao:
             if nome_classe.strip() == "AgenteRL":
                 novo_agente = AgenteRL(nome, posicao, caminho_config)
                 
-                # Instalação de Sensores
-                # DIREÇÃO: Obrigatório (saber para onde ir)
                 novo_agente.instala(SensorDirecao())
                 
-                # PROXIMIDADE: CRÍTICO NO LABIRINTO
-                # No labirinto, precisamos MESMO de saber onde estão as paredes
                 novo_agente.instala(SensorProximidade())
-                
-                # Visão: Opcional
-                # novo_agente.instala(SensorVisao(raio_visao=3.0))
                 
             elif nome_classe.strip() == "AgenteNormal":
                 novo_agente = AgenteNormal(nome, posicao, caminho_config)
                 
-                # Agente Normal precisa de direção para o modo 'guloso'
                 novo_agente.instala(SensorDirecao())
                 novo_agente.instala(SensorProximidade()) 
                 

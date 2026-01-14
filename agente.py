@@ -13,37 +13,30 @@ class Agente(ABC, threading.Thread):
         self.recompensa_total = 0.0
         self.passos = 0
         self.sensores = []
-        self.ultima_observacao = None # Guarda sempre a última observação
+        self.ultima_observacao = None
         self.running = False
-        self.ambiente = None # Referência para o ambiente
+        self.ambiente = None 
         self.start_step_event = threading.Event()
         self.end_step_event = threading.Event()
 
     def set_ambiente(self, ambiente):
         self.ambiente = ambiente
-        # --- NOVO: Guardar onde nasceu para poder voltar lá ---
         if hasattr(self, 'posicao'):
             self.posicao_inicial = self.posicao        
 
     def run(self):
         self.running = True
         while self.running:
-            # Wait for "Start Step" signal
             self.start_step_event.wait()
             if not self.running: break
             self.start_step_event.clear()
 
-            # Cycle: Observe -> Act
             if self.ambiente:
-                # Se houver sensores, usar os sensores para obter a observação
                 if self.sensores:
                     dados_combinados = {}
                     for sensor in self.sensores:
-                        # Cada sensor recolhe info 
                         obs_sensor = sensor.detetar(self.ambiente, self)
-                        #Junta os dados de vários sensores
                         dados_combinados.update(obs_sensor.dados)
-                        #Sprint("A usar sensor instalado")
                     observacao= Observacao(dados_combinados)
                 else:
                     observacao = self.ambiente.observacaoPara(self)
@@ -52,13 +45,12 @@ class Agente(ABC, threading.Thread):
                 accao = self.age()
                 self.ambiente.agir(accao, self)
             
-            # Signal that we are done with this step
             self.end_step_event.set()
 
     @abstractmethod
     def observacao(self, obs: 'Observacao'):
         """Recebe a observação do ambiente. Atualiza o estado interno do agente."""
-        self.ultima_observacao = obs # Atualiza a última observação
+        self.ultima_observacao = obs
 
     @abstractmethod
     def age(self) -> 'Accao':
@@ -71,7 +63,7 @@ class Agente(ABC, threading.Thread):
         self.recompensa_total += recompensa
         self.passos += 1
 
-    def instala(self, sensor: Sensor): # Tipificação melhorada
+    def instala(self, sensor: Sensor):
         """Instala um sensor no agente."""
         self.sensores.append(sensor)
 
