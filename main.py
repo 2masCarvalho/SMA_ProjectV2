@@ -5,7 +5,6 @@ import tkinter as tk
 import sys
 import os
 
-# CONFIGURAÇÃO IGUAL AO TREINAR.PY (Para lerem os mesmos ficheiros)
 CENARIOS = {
     "1": {
         "caminho": "JSONFILES/farol1copy.json", 
@@ -42,7 +41,6 @@ def escolher_cenario():
 
 if __name__ == "__main__":
 
-    # 1. Escolher Cenário
     config_cenario = escolher_cenario()
     caminho_ficheiro = config_cenario["caminho"]
     nome_memoria_alvo = config_cenario["nome_memoria"]
@@ -52,21 +50,15 @@ if __name__ == "__main__":
 
     motor = MotorDeSimulacao.cria(caminho_ficheiro)
 
-    # 2. INJETAR A MEMÓRIA CORRETA (IGUAL AO TREINO)
     memoria_encontrada = False
     for agente in motor.agentes:
         if hasattr(agente, 'ficheiro_memoria') and hasattr(agente, 'politica'):
-            # Força o agente a usar o ficheiro específico deste cenário
-            # Força o agente a usar o ficheiro específico deste cenário
             agente.ficheiro_memoria = nome_memoria_alvo
             
-            # --- MODO TESTE ATIVADO ---
-            # Desliga a aprendizagem para vermos apenas o que ele já sabe
             if hasattr(agente, 'learning_mode'):
                 agente.learning_mode = False
                 print(f"   [{agente.nome}] Modo de Aprendizagem: DESLIGADO (Teste Puro)")
             
-            # Tenta carregar
             if os.path.exists(nome_memoria_alvo):
                 agente.politica.carregar(nome_memoria_alvo)
                 print(f"   [{agente.nome}] SUCESSO: Memória '{nome_memoria_alvo}' carregada.")
@@ -80,7 +72,6 @@ if __name__ == "__main__":
         print("\n--- ATENÇÃO: Nenhum cérebro treinado foi encontrado. ---")
         input("Pressiona ENTER para continuar mesmo assim (ou Ctrl+C para sair)...")
 
-    # 3. Visualização Normal
     largura = getattr(motor, 'largura', getattr(motor.ambiente, 'largura', 20))
     altura = getattr(motor, 'altura', getattr(motor.ambiente, 'altura', 20))
     viz = VisualizadorTk(largura, altura, tamanho_celula=30)
@@ -94,7 +85,6 @@ if __name__ == "__main__":
             motor.executa()
             passos += 1
             
-            # DEBUG: Imprimir posição do primeiro agente
             if motor.agentes:
                 print(f"Passo {passos}: Pos {motor.agentes[0].posicao}")
             
@@ -112,7 +102,6 @@ if __name__ == "__main__":
             except tk.TclError:
                 break
             
-            # Velocidade de visualização (ajusta a gosto)
             time.sleep(0.1) 
             
     except KeyboardInterrupt:

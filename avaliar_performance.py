@@ -4,12 +4,9 @@ import os
 import statistics
 from Motor import MotorDeSimulacao
 
-# ================= CONFIGURAÇÕES DE TESTE =================
-NUM_EPISODIOS = 100      # Quantos testes queres correr para tirar a média?
-MAX_PASSOS = 1000        # Limite de passos para considerar que o agente falhou
-# ==========================================================
+NUM_EPISODIOS = 100
+MAX_PASSOS = 1000
 
-# CONFIGURAÇÃO DOS CENÁRIOS (Igual ao teu ficheiro visual)
 CENARIOS = {
     "1": {
         "caminho": "JSONFILES/farol1copy.json", 
@@ -46,7 +43,6 @@ def escolher_cenario():
 
 if __name__ == "__main__":
 
-    # 1. Escolher Cenário
     config_cenario = escolher_cenario()
     caminho_ficheiro = config_cenario["caminho"]
     nome_memoria_alvo = config_cenario["nome_memoria"]
@@ -55,21 +51,16 @@ if __name__ == "__main__":
     print(f"-> A testar memória: {nome_memoria_alvo}")
     print(f"-> Executando {NUM_EPISODIOS} episódios sem pausa visual...\n")
 
-    # Criar o motor
     motor = MotorDeSimulacao.cria(caminho_ficheiro)
 
-    # 2. CONFIGURAR AGENTES (Carregar Memória e Desligar Aprendizagem)
     memoria_encontrada = False
     for agente in motor.agentes:
         if hasattr(agente, 'politica'):
-            # Força o caminho correto da memória
             agente.ficheiro_memoria = nome_memoria_alvo
             
-            # --- MODO TESTE (IMPORTANTE) ---
             if hasattr(agente, 'learning_mode'):
-                agente.learning_mode = False # Desliga a exploração (Epsilon = 0) e updates
+                agente.learning_mode = False
             
-            # Carregar Q-Table
             if os.path.exists(nome_memoria_alvo):
                 agente.politica.carregar(nome_memoria_alvo)
                 memoria_encontrada = True
@@ -80,7 +71,6 @@ if __name__ == "__main__":
         print("\n--- ATENÇÃO: Nenhum cérebro treinado foi carregado. O teste será aleatório. ---")
         time.sleep(2)
 
-    # 3. LOOP DE AVALIAÇÃO
     sucessos = 0
     lista_passos = []
     start_time_total = time.time()
@@ -89,13 +79,11 @@ if __name__ == "__main__":
     
     try:
         for ep in range(1, NUM_EPISODIOS + 1):
-            # Resetar o ambiente para o estado inicial (posição inicial, limpar flags)
             motor.ambiente.reset()
             
             passos_episodio = 0
             concluido = False
             
-            # Loop do Episódio Individual
             for _ in range(MAX_PASSOS):
                 motor.executa()
                 passos_episodio += 1
@@ -104,12 +92,10 @@ if __name__ == "__main__":
                     concluido = True
                     break
             
-            # Registar dados
             if concluido:
                 sucessos += 1
                 lista_passos.append(passos_episodio)
             
-            # Barra de progresso simples (imprime a cada 10%)
             if ep % (NUM_EPISODIOS // 10) == 0:
                 print(f" > Progresso: {ep}/{NUM_EPISODIOS} episódios concluídos.")
 
@@ -117,7 +103,6 @@ if __name__ == "__main__":
         print("\nAvaliação interrompida pelo utilizador.")
         
     finally:
-        # 4. CALCULAR E APRESENTAR ESTATÍSTICAS
         total_tempo = time.time() - start_time_total
         taxa_sucesso = (sucessos / NUM_EPISODIOS) * 100
         
@@ -148,11 +133,9 @@ if __name__ == "__main__":
         print(f" Tempo computacional: {total_tempo:.4f} segundos")
         print("="*50)
 
-        # Parar threads se existirem
         if hasattr(motor, 'parar_agentes'):
             motor.parar_agentes()
         else:
-            # Fallback para parar threads manuais
             for a in motor.agentes:
                 if hasattr(a, 'end_step_event'): a.end_step_event.set()
                 if hasattr(a, 'start_step_event'): a.start_step_event.set()

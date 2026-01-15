@@ -18,7 +18,6 @@ class VisualizadorTk:
     def desenhar(self, ambiente, agentes):
         self.canvas.delete("all")
         
-        # Desenhar Grelha (Opcional)
         for i in range(self.largura + 1):
             x = i * self.tamanho_celula
             self.canvas.create_line(x, 0, x, self.altura * self.tamanho_celula, fill="#ddd")
@@ -26,8 +25,6 @@ class VisualizadorTk:
             y = i * self.tamanho_celula
             self.canvas.create_line(0, y, self.largura * self.tamanho_celula, y, fill="#ddd")
             
-        # Desenhar Obstáculos
-        # Desenhar Obstáculos / Paredes
         if hasattr(ambiente, 'obstaculos'):
             for obs in ambiente.obstaculos:
                 x, y = obs
@@ -37,7 +34,6 @@ class VisualizadorTk:
                 x, y = parede
                 self._desenhar_celula(x, y, "black", "")
 
-        # Desenhar Farol / Saída
         if hasattr(ambiente, 'farol_pos'):
             fx, fy = ambiente.farol_pos
             self._desenhar_celula(fx, fy, "yellow", "F")
@@ -45,7 +41,6 @@ class VisualizadorTk:
             sx, sy = ambiente.saida
             self._desenhar_celula(sx, sy, "green", "S")
         
-        # Desenhar Agentes
         colors = ["red", "blue", "green", "orange", "purple"]
         for i, agente in enumerate(agentes):
             if agente in ambiente.agentes_posicoes:
@@ -65,10 +60,8 @@ class VisualizadorTk:
     def _desenhar_agente(self, x, y, cor, nome):
         cx = x * self.tamanho_celula
         cy = y * self.tamanho_celula
-        # Desenhar circulo
         padding = 5
         self.canvas.create_oval(cx + padding, cy + padding, cx + self.tamanho_celula - padding, cy + self.tamanho_celula - padding, fill=cor)
-        # Nome (primeira letra)
         self.canvas.create_text(cx + self.tamanho_celula/2, cy + self.tamanho_celula/2, text=nome[0], fill="white", font=("Arial", 10, "bold"))
 
     def fechar(self):

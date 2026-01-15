@@ -15,11 +15,8 @@ class AgenteRL(Agente):
         self.learning_mode = learning_mode
         self.epsilon_atual = None 
 
-        # Memória para detetar loops (Anti-Stuck)
         self.memoria_posicoes = deque(maxlen=6)
         
-        # --- NOVO: Memória da Última Ação ---
-        # Guarda o índice da última ação (0-3) ou nome para dar contexto
         self.ultima_accao_nome = "parado" 
 
         caminho_limpo = ficheiro_config.lstrip('/').lstrip('\\')
@@ -46,7 +43,7 @@ class AgenteRL(Agente):
             return PoliticaQLearning(
                 accoes_possiveis=accoes,
                 alpha=params.get("alpha", 0.1),
-                gamma=params.get("gamma", 0.99), # Gamma alto é bom para labirintos longos
+                gamma=params.get("gamma", 0.99), 
                 epsilon=params.get("epsilon", 0.1)
             )
         except Exception as e:
@@ -89,8 +86,8 @@ class AgenteRL(Agente):
     def _detectar_loop(self):
         if len(self.memoria_posicoes) < 4: return False
         p = list(self.memoria_posicoes)
-        if p[-1] == p[-3] and p[-2] == p[-4]: return True # Ping-Pong
-        if p[-1] == p[-2] == p[-3]: return True # Parado
+        if p[-1] == p[-3] and p[-2] == p[-4]: return True 
+        if p[-1] == p[-2] == p[-3]: return True 
         return False
 
     def age(self) -> Accao:
@@ -118,9 +115,6 @@ class AgenteRL(Agente):
                     for x, y in chaves_ordem
                 )
 
-        # --- DEFINIÇÃO DO ESTADO ---
-        # Estado = (Onde está o Farol, Obstáculos à volta, O que fiz antes)
-        # Isto ajuda a manter o "Momentum" nos corredores
         estado_rl = (direcao_farol, obstaculos_perto, self.ultima_accao_nome)
         
         obs_para_politica = Observacao({
@@ -133,14 +127,12 @@ class AgenteRL(Agente):
             if self.learning_mode:
                 epsilon_to_use = self.epsilon_atual if self.epsilon_atual is not None else 0.1
             
-            # Anti-Stuck Trigger
             esta_preso = self._detectar_loop()
             if esta_preso:
-                epsilon_to_use = 0.6 # Aumentei para 60% para garantir que ele sai mesmo dali
+                epsilon_to_use = 0.6 
             
             accao = self.politica.selecionar_accao(obs_para_politica, epsilon_override=epsilon_to_use)
             
-            # Safety Layer (Só se não estiver preso)
             if not self.learning_mode and not esta_preso:
                 direcao_escolhida = accao.parametros.get("direcao")
                 mapa_idx = {"norte": 0, "sul": 1, "este": 2, "oeste": 3}
@@ -164,10 +156,8 @@ class AgenteRL(Agente):
                                 melhor_dir = dir_nome
                         accao = Accao("mover", {"direcao": melhor_dir})
             
-            # --- ATUALIZAR A ÚLTIMA AÇÃO ---
             if accao.tipo == "mover":
                 self.ultima_accao_nome = accao.parametros.get("direcao", "parado")
-            # -------------------------------
 
             return accao
         
@@ -178,6 +168,5 @@ class AgenteRL(Agente):
             self.politica.salvar(self.ficheiro_memoria)
 
     def reset_estado(self):
-        """Limpa a memória de curto prazo para novos episódios."""
         self.memoria_posicoes.clear()
         self.ultima_accao_nome = "parado"
