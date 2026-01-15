@@ -1,7 +1,7 @@
 {
     "alpha": 0.1,
     "gamma": 0.99,
-    "epsilon": 0.3,
+    "epsilon": 1,
     "accoes": [
         "norte",
         "sul",

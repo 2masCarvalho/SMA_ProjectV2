@@ -90,7 +90,7 @@
     },
     "agentes": [
         {
-            "classe": "AgenteRL",
+            "classe": "AgenteLabirinto",
             "ficheiro_config": "JSONFILES/config_agente_qlearning_labirinto.json",
             "nome": "Agente_Rat",
             "posicao": [

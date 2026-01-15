@@ -2,8 +2,8 @@
     "tipo": "farol",
     "ambiente": {
         "pos_farol": [
-            8,
-            8
+            9,
+            9
         ],
         "dimensao": [
             10,
@@ -11,43 +11,39 @@
         ],
         "obstaculos": [
             [
+                4,
+                4
+            ],
+            [
                 5,
+                4
+            ],
+            [
+                4,
                 5
+            ],
+            [
+                2,
+                7
+            ],
+            [
+                7,
+                2
             ],
             [
                 6,
                 6
-            ],
-            [
-                7,
-                7
-            ],
-            [
-                5,
-                10
-            ],
-            [
-                6,
-                11
-            ],
-            [
-                7,
-                12
-            ],
-            [
-                8,
-                13
             ]
         ]
     },
     "agentes": [
         {
             "classe": "AgenteRL",
-            "ficheiro_config": "/JSONFILES/config_agente_qlearning.json",
-            "nome": "Agente_QLearning",
+            "ficheiro_config": "JSONFILES/config_agente_qlearning.json",
+            "nome": "Agente_Velocista",
             "posicao": [
-                1,
-                1
+                0,
+                0
             ]
         }
     ]

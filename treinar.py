@@ -48,7 +48,7 @@ def escolher_cenario():
     escolha = input("Escolha o cenário (1-5): ").strip()
     return CENARIOS.get(escolha, CENARIOS["1"])
 
-def treinar_agente(n_episodios=2000):
+def treinar_agente(n_episodios=1000):
     # 1. Escolher Cenário
     config = escolher_cenario()
     ficheiro_cenario = config["caminho"]

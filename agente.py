@@ -97,40 +97,4 @@ class AgenteDirecional(Agente):
     def avaliacao_estado_atual(self, recompensa: float):
         super().avaliacao_estado_atual(recompensa)
 
-class AgenteExplorador(Agente):
-    def __init__(self, nome, posicao):
-        super().__init__(nome)
-        self.posicao = posicao
-        self.opcoes = []
 
-    def observacao(self, obs):
-        super().observacao(obs)
-        self.opcoes = obs.get("caminhos", [])
-
-    def age(self):
-        if self.opcoes:
-            return Accao("mover", {"direcao": self.opcoes[0]})
-        return Accao("parar")
-
-    def comunica(self, mensagem: str, de_agente: 'Agente'):
-        pass
-
-    def avaliacao_estado_atual(self, recompensa: float):
-        super().avaliacao_estado_atual(recompensa)
-
-class AgenteInteligente(Agente):
-    def __init__(self, nome, posicao):
-        super().__init__(nome)
-        self.posicao = posicao
-
-    def observacao(self, obs):
-        super().observacao(obs)
-
-    def age(self):
-        return Accao("pensar")
-
-    def comunica(self, mensagem: str, de_agente: 'Agente'):
-        pass
-
-    def avaliacao_estado_atual(self, recompensa: float):
-        super().avaliacao_estado_atual(recompensa)
