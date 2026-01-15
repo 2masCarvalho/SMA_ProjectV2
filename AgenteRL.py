@@ -176,3 +176,8 @@ class AgenteRL(Agente):
     def stop(self):
         if self.politica:
             self.politica.salvar(self.ficheiro_memoria)
+
+    def reset_estado(self):
+        """Limpa a memória de curto prazo para novos episódios."""
+        self.memoria_posicoes.clear()
+        self.ultima_accao_nome = "parado"

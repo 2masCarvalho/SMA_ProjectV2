@@ -5,7 +5,6 @@ from typing import Tuple, List
 from Ambiente import Ambiente
 from Modelos import Observacao, Accao
 
-
 class AmbienteFarol(Ambiente):
     """Ambiente 2D com um farol e obstáculos opcionais."""
     def __init__(self, farol_pos: Tuple[int, int], dimensoes: Tuple[int, int], obstaculos: List[Tuple[int, int]] = None):
@@ -14,19 +13,31 @@ class AmbienteFarol(Ambiente):
         self.dimensoes = dimensoes
         self.largura, self.altura = dimensoes
         self.obstaculos = obstaculos if obstaculos else []
-        self.agentes_posicoes = {} # Dicionário para guardar posições dos agentes {agente: (x, y)}
-
-        self._alvo_atingido = False # Variável interna de controlo
+        
+        self.agentes_posicoes = {}   # Posições atuais
+        self.posicoes_iniciais = {}  # Guardar para o reset
+        
+        self._alvo_atingido = False 
 
     def adicionar_agente(self, agente, pos_inicial: Tuple[int, int]):
         self.agentes_posicoes[agente] = pos_inicial
+        self.posicoes_iniciais[agente] = pos_inicial # Guarda a posição de origem
 
+    # No ficheiro AmbienteFarol.py
+    def reset(self):
+        self._alvo_atingido = False
+        for agente, pos_init in self.posicoes_iniciais.items():
+            self.agentes_posicoes[agente] = pos_init
+            
+            # --- ADICIONAR ESTA LINHA ---
+            if hasattr(agente, "reset_estado"):
+                agente.reset_estado()
     def observacaoPara(self, agente) -> Observacao:
         """
         Calcula a direção (vetor unitário) para o farol.
         """
         if agente not in self.agentes_posicoes:
-            print("Agente não encontrado no ambiente para observação.")
+            # print("Agente não encontrado no ambiente para observação.")
             return Observacao({})
         
         pos_agente = self.agentes_posicoes[agente]
@@ -47,7 +58,6 @@ class AmbienteFarol(Ambiente):
         pass
     
     def simulacao_concluida(self) -> bool:
-        # Implementação específica do Farol
         return self._alvo_atingido
 
     def _agir_safe(self, accao: Accao, agente) -> float:
@@ -117,10 +127,7 @@ class AmbienteFarol(Ambiente):
         # --- VERIFICAÇÃO DE VITÓRIA ---
         if dist_nova < 1.0:
             recompensa += 100 
-            print(f"!!! Agente {agente.nome} chegou ao Farol !!!")
-            
-            # ATUALIZAÇÃO IMPORTANTE: Avisar o ambiente que acabou
-            # (Certifica-te que definiste self._alvo_atingido = False no __init__)
+            # print(f"!!! Agente {agente.nome} chegou ao Farol !!!")
             self._alvo_atingido = True
             
         agente.avaliacao_estado_atual(recompensa)
